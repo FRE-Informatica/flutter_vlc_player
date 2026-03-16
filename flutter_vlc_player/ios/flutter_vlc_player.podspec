@@ -15,11 +15,15 @@ Pod::Spec.new do |s|
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
-  s.platform = :ios, '11.0'
+  s.platform = :ios, '14.0'
   s.dependency 'MobileVLCKit', '~> 3.6.1b1'
   s.static_framework = true
-
   # Flutter.framework does not contain a i386 slice.
-  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
+  # Bitcode must be disabled for MobileVLCKit compatibility.
+  s.pod_target_xcconfig = { 
+    'DEFINES_MODULE' => 'YES', 
+    'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386',
+    'ENABLE_BITCODE' => 'NO'
+  }
   s.swift_version = '5.0'
 end

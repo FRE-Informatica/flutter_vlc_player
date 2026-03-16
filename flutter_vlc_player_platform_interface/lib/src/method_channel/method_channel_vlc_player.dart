@@ -21,7 +21,7 @@ class MethodChannelVlcPlayer extends VlcPlayerPlatform {
   }
 
   @override
-  Future<void> init() {
+  Future<void> init() async {
     return _api.initialize();
   }
 
@@ -34,24 +34,23 @@ class MethodChannelVlcPlayer extends VlcPlayerPlatform {
     bool? autoPlay,
     HwAcc? hwAcc,
     VlcPlayerOptions? options,
-  }) {
-    final message = CreateMessage(
-      playerId: viewId,
-      uri: uri,
-      type: type.index,
-      packageName: package,
-      autoPlay: autoPlay ?? true,
-      hwAcc: hwAcc?.index,
-      options: options?.get() ?? [],
-    );
+  }) async {
+    final message = CreateMessage();
+    message.viewId = viewId;
+    message.uri = uri;
+    message.type = type.index;
+    message.packageName = package;
+    message.hwAcc = hwAcc?.index;
+    message.autoPlay = autoPlay ?? true;
+    message.options = options?.get() ?? [];
 
     return _api.create(message);
   }
 
   // ignore: proper_super_calls
   @override
-  Future<void> dispose(int viewId) {
-    return _api.dispose(viewId);
+  Future<void> dispose(int viewId) async {
+    return _api.dispose(ViewMessage()..viewId = viewId);
   }
 
   /// This method builds the appropriate platform view where the player
@@ -198,118 +197,161 @@ class MethodChannelVlcPlayer extends VlcPlayerPlatform {
     String? package,
     bool? autoPlay,
     HwAcc? hwAcc,
-  }) {
-    final message = SetMediaMessage(
-      playerId: viewId,
-      uri: uri,
-      type: type.index,
-      packageName: package,
-      hwAcc: hwAcc?.index,
-      autoPlay: autoPlay ?? true,
-    );
+  }) async {
+    final message = SetMediaMessage();
+    message.viewId = viewId;
+    message.uri = uri;
+    message.type = type.index;
+    message.packageName = package;
+    message.hwAcc = hwAcc?.index;
+    message.autoPlay = autoPlay ?? true;
 
     return _api.setStreamUrl(message);
   }
 
   @override
-  Future<void> setLooping(int viewId, bool looping) {
-    return _api.setLooping(viewId, looping);
+  Future<void> setLooping(int viewId, bool looping) async {
+    return _api.setLooping(
+      LoopingMessage()
+        ..viewId = viewId
+        ..isLooping = looping,
+    );
   }
 
   @override
-  Future<void> play(int viewId) {
-    return _api.play(viewId);
+  Future<void> play(int viewId) async {
+    return _api.play(ViewMessage()..viewId = viewId);
   }
 
   @override
-  Future<void> pause(int viewId) {
-    return _api.pause(viewId);
+  Future<void> pause(int viewId) async {
+    return _api.pause(ViewMessage()..viewId = viewId);
   }
 
   @override
-  Future<void> stop(int viewId) {
-    return _api.stop(viewId);
+  Future<void> stop(int viewId) async {
+    return _api.stop(ViewMessage()..viewId = viewId);
   }
 
   @override
-  Future<bool> isPlaying(int viewId) {
-    return _api.isPlaying(viewId);
+  Future<bool?> isPlaying(int viewId) async {
+    final response = await _api.isPlaying(ViewMessage()..viewId = viewId);
+
+    return response.result;
   }
 
   @override
-  Future<bool> isSeekable(int viewId) {
-    return _api.isSeekable(viewId);
+  Future<bool?> isSeekable(int viewId) async {
+    final response = await _api.isSeekable(ViewMessage()..viewId = viewId);
+
+    return response.result;
   }
 
   @override
-  Future<void> seekTo(int viewId, Duration position) {
-    return _api.seekTo(viewId, position.inMilliseconds);
+  Future<void> seekTo(int viewId, Duration position) async {
+    return _api.seekTo(
+      PositionMessage()
+        ..viewId = viewId
+        ..position = position.inMilliseconds,
+    );
   }
 
   @override
   Future<Duration> getPosition(int viewId) async {
-    final response = await _api.position(viewId);
+    final response = await _api.position(ViewMessage()..viewId = viewId);
 
-    return Duration(milliseconds: response);
+    return Duration(milliseconds: response.position ?? 0);
   }
 
   @override
   Future<Duration> getDuration(int viewId) async {
-    final response = await _api.duration(viewId);
+    final response = await _api.duration(ViewMessage()..viewId = viewId);
 
-    return Duration(milliseconds: response);
+    return Duration(milliseconds: response.duration ?? 0);
   }
 
   @override
-  Future<void> setVolume(int viewId, int volume) {
-    return _api.setVolume(viewId, volume);
+  Future<void> setVolume(int viewId, int volume) async {
+    return _api.setVolume(
+      VolumeMessage()
+        ..viewId = viewId
+        ..volume = volume,
+    );
   }
 
   @override
-  Future<int> getVolume(int viewId) {
-    return _api.getVolume(viewId);
+  Future<int?> getVolume(int viewId) async {
+    final response = await _api.getVolume(ViewMessage()..viewId = viewId);
+
+    return response.volume;
   }
 
   @override
-  Future<void> setPlaybackSpeed(int viewId, double speed) {
+  Future<void> setPlaybackSpeed(int viewId, double speed) async {
     assert(speed > 0);
 
-    return _api.setPlaybackSpeed(viewId, speed);
+    return _api.setPlaybackSpeed(
+      PlaybackSpeedMessage()
+        ..viewId = viewId
+        ..speed = speed,
+    );
   }
 
   @override
-  Future<double> getPlaybackSpeed(int viewId) {
-    return _api.getPlaybackSpeed(viewId);
+  Future<double?> getPlaybackSpeed(int viewId) async {
+    final response = await _api.getPlaybackSpeed(
+      ViewMessage()..viewId = viewId,
+    );
+
+    return response.speed;
   }
 
   @override
-  Future<int> getSpuTracksCount(int viewId) {
-    return _api.getSpuTracksCount(viewId);
+  Future<int?> getSpuTracksCount(int viewId) async {
+    final response = await _api.getSpuTracksCount(
+      ViewMessage()..viewId = viewId,
+    );
+
+    return response.count;
   }
 
   @override
-  Future<Map<int, String>> getSpuTracks(int viewId) {
-    return _api.getSpuTracks(viewId);
+  Future<Map<int, String>> getSpuTracks(int viewId) async {
+    final response = await _api.getSpuTracks(ViewMessage()..viewId = viewId);
+
+    return response.subtitles?.cast<int, String>() ?? {};
   }
 
   @override
-  Future<int> getSpuTrack(int viewId) {
-    return _api.getSpuTrack(viewId);
+  Future<int?> getSpuTrack(int viewId) async {
+    final response = await _api.getSpuTrack(ViewMessage()..viewId = viewId);
+
+    return response.spuTrackNumber;
   }
 
   @override
-  Future<void> setSpuTrack(int viewId, int spuTrackNumber) {
-    return _api.setSpuTrack(viewId, spuTrackNumber);
+  Future<void> setSpuTrack(int viewId, int spuTrackNumber) async {
+    return _api.setSpuTrack(
+      SpuTrackMessage()
+        ..viewId = viewId
+        ..spuTrackNumber = spuTrackNumber,
+    );
   }
 
   @override
-  Future<void> setSpuDelay(int viewId, int delay) {
-    return _api.setSpuDelay(viewId, delay);
+  Future<void> setSpuDelay(int viewId, int delay) async {
+    return _api.setSpuDelay(
+      DelayMessage()
+        ..viewId = viewId
+        ..delay = delay,
+    );
   }
 
   @override
-  Future<int> getSpuDelay(int viewId) {
-    return _api.getSpuDelay(viewId);
+  Future<int?> getSpuDelay(int viewId) async {
+    final response = await _api.getSpuDelay(ViewMessage()..viewId = viewId);
+
+    return response.delay;
   }
 
   @override
@@ -318,45 +360,62 @@ class MethodChannelVlcPlayer extends VlcPlayerPlatform {
     required String uri,
     required DataSourceType type,
     bool? isSelected,
-  }) {
-    return _api.addSubtitleTrack(
-      AddSubtitleMessage(
-        playerId: viewId,
-        uri: uri,
-        type: type.index,
-        isSelected: isSelected ?? false,
-      ),
+  }) async {
+    final message = AddSubtitleMessage();
+    message.viewId = viewId;
+    message.uri = uri;
+    message.type = type.index;
+    message.isSelected = isSelected;
+
+    return _api.addSubtitleTrack(message);
+  }
+
+  @override
+  Future<int?> getAudioTracksCount(int viewId) async {
+    final response = await _api.getAudioTracksCount(
+      ViewMessage()..viewId = viewId,
+    );
+
+    return response.count;
+  }
+
+  @override
+  Future<Map<int, String>> getAudioTracks(int viewId) async {
+    final response = await _api.getAudioTracks(ViewMessage()..viewId = viewId);
+
+    return response.audios?.cast<int, String>() ?? {};
+  }
+
+  @override
+  Future<int?> getAudioTrack(int viewId) async {
+    final response = await _api.getAudioTrack(ViewMessage()..viewId = viewId);
+
+    return response.audioTrackNumber;
+  }
+
+  @override
+  Future<void> setAudioTrack(int viewId, int audioTrackNumber) async {
+    return _api.setAudioTrack(
+      AudioTrackMessage()
+        ..viewId = viewId
+        ..audioTrackNumber = audioTrackNumber,
     );
   }
 
   @override
-  Future<int> getAudioTracksCount(int viewId) {
-    return _api.getAudioTracksCount(viewId);
+  Future<void> setAudioDelay(int viewId, int delay) async {
+    return _api.setAudioDelay(
+      DelayMessage()
+        ..viewId = viewId
+        ..delay = delay,
+    );
   }
 
   @override
-  Future<Map<int, String>> getAudioTracks(int viewId) {
-    return _api.getAudioTracks(viewId);
-  }
+  Future<int?> getAudioDelay(int viewId) async {
+    final response = await _api.getAudioDelay(ViewMessage()..viewId = viewId);
 
-  @override
-  Future<int> getAudioTrack(int viewId) {
-    return _api.getAudioTrack(viewId);
-  }
-
-  @override
-  Future<void> setAudioTrack(int viewId, int audioTrackNumber) {
-    return _api.setAudioTrack(viewId, audioTrackNumber);
-  }
-
-  @override
-  Future<void> setAudioDelay(int viewId, int delay) {
-    return _api.setAudioDelay(viewId, delay);
-  }
-
-  @override
-  Future<int> getAudioDelay(int viewId) {
-    return _api.getAudioDelay(viewId);
+    return response.delay;
   }
 
   @override
@@ -365,95 +424,134 @@ class MethodChannelVlcPlayer extends VlcPlayerPlatform {
     required String uri,
     required DataSourceType type,
     bool? isSelected,
-  }) {
-    return _api.addAudioTrack(
-      AddAudioMessage(
-        playerId: viewId,
-        uri: uri,
-        type: type.index,
-        isSelected: isSelected ?? false,
-      ),
+  }) async {
+    final message = AddAudioMessage();
+    message.viewId = viewId;
+    message.uri = uri;
+    message.type = type.index;
+    message.isSelected = isSelected;
+
+    return _api.addAudioTrack(message);
+  }
+
+  @override
+  Future<int?> getVideoTracksCount(int viewId) async {
+    final response = await _api.getVideoTracksCount(
+      ViewMessage()..viewId = viewId,
+    );
+
+    return response.count;
+  }
+
+  @override
+  Future<Map<int, String>> getVideoTracks(int viewId) async {
+    final response = await _api.getVideoTracks(ViewMessage()..viewId = viewId);
+
+    return response.videos?.cast<int, String>() ?? {};
+  }
+
+  @override
+  Future<void> setVideoTrack(int viewId, int videoTrackNumber) async {
+    return _api.setVideoTrack(
+      VideoTrackMessage()
+        ..viewId = viewId
+        ..videoTrackNumber = videoTrackNumber,
     );
   }
 
   @override
-  Future<int> getVideoTracksCount(int viewId) {
-    return _api.getVideoTracksCount(viewId);
+  Future<int?> getVideoTrack(int viewId) async {
+    final response = await _api.getVideoTrack(ViewMessage()..viewId = viewId);
+
+    return response.videoTrackNumber;
   }
 
   @override
-  Future<Map<int, String>> getVideoTracks(int viewId) {
-    return _api.getVideoTracks(viewId);
+  Future<void> setVideoScale(int viewId, double scale) async {
+    return _api.setVideoScale(
+      VideoScaleMessage()
+        ..viewId = viewId
+        ..scale = scale,
+    );
   }
 
   @override
-  Future<void> setVideoTrack(int viewId, int videoTrackNumber) {
-    return _api.setVideoTrack(viewId, videoTrackNumber);
+  Future<double?> getVideoScale(int viewId) async {
+    final response = await _api.getVideoScale(ViewMessage()..viewId = viewId);
+
+    return response.scale;
   }
 
   @override
-  Future<int> getVideoTrack(int viewId) {
-    return _api.getVideoTrack(viewId);
+  Future<void> setVideoAspectRatio(int viewId, String aspect) async {
+    return _api.setVideoAspectRatio(
+      VideoAspectRatioMessage()
+        ..viewId = viewId
+        ..aspectRatio = aspect,
+    );
   }
 
   @override
-  Future<void> setVideoScale(int viewId, double scale) {
-    return _api.setVideoScale(viewId, scale);
-  }
+  Future<String?> getVideoAspectRatio(int viewId) async {
+    final response = await _api.getVideoAspectRatio(
+      ViewMessage()..viewId = viewId,
+    );
 
-  @override
-  Future<double> getVideoScale(int viewId) {
-    return _api.getVideoScale(viewId);
-  }
-
-  @override
-  Future<void> setVideoAspectRatio(int viewId, String aspect) {
-    return _api.setVideoAspectRatio(viewId, aspect);
-  }
-
-  @override
-  Future<String> getVideoAspectRatio(int viewId) {
-    return _api.getVideoAspectRatio(viewId);
+    return response.aspectRatio;
   }
 
   String base64Encode(List<int> value) => base64.encode(value);
   Uint8List base64Decode(String source) => base64.decode(source);
 
   @override
-  Future<Uint8List?> takeSnapshot(int viewId) async {
-    final base64String = await _api.takeSnapshot(viewId);
-    if (base64String == null) {
-      return null;
-    }
-
-    final imageBytes = base64Decode(base64.normalize(base64String));
-
-    return imageBytes;
+  Future<Uint8List> takeSnapshot(int viewId) async {
+    final response = await _api.takeSnapshot(ViewMessage()..viewId = viewId);
+    final base64String = response.snapshot ?? "";
+    return base64Decode(base64.normalize(base64String));
   }
 
   @override
-  Future<List<String>> getAvailableRendererServices(int viewId) {
-    return _api.getAvailableRendererServices(viewId);
+  Future<List<String>> getAvailableRendererServices(int viewId) async {
+    final response = await _api.getAvailableRendererServices(
+      ViewMessage()..viewId = viewId,
+    );
+
+    return response.services?.cast<String>() ?? [];
   }
 
   @override
-  Future<void> startRendererScanning(int viewId, {String? rendererService}) {
-    return _api.startRendererScanning(viewId, rendererService ?? '');
+  Future<void> startRendererScanning(
+    int viewId, {
+    String? rendererService,
+  }) async {
+    return _api.startRendererScanning(
+      RendererScanningMessage()
+        ..viewId = viewId
+        ..rendererService = rendererService ?? '',
+    );
   }
 
   @override
-  Future<void> stopRendererScanning(int viewId) {
-    return _api.stopRendererScanning(viewId);
+  Future<void> stopRendererScanning(int viewId) async {
+    return _api.stopRendererScanning(ViewMessage()..viewId = viewId);
   }
 
   @override
-  Future<Map<String, String>> getRendererDevices(int viewId) {
-    return _api.getRendererDevices(viewId);
+  Future<Map<String, String>> getRendererDevices(int viewId) async {
+    final response = await _api.getRendererDevices(
+      ViewMessage()..viewId = viewId,
+    );
+
+    return response.rendererDevices?.cast<String, String>() ?? {};
   }
 
   @override
-  Future<void> castToRenderer(int viewId, String rendererDevice) {
-    return _api.castToRenderer(viewId, rendererDevice);
+  Future<void> castToRenderer(int viewId, String rendererDevice) async {
+    return _api.castToRenderer(
+      RenderDeviceMessage()
+        ..viewId = viewId
+        ..rendererDevice = rendererDevice,
+    );
   }
 
   @override
@@ -485,12 +583,20 @@ class MethodChannelVlcPlayer extends VlcPlayerPlatform {
   }
 
   @override
-  Future<bool> startRecording(int viewId, String saveDirectory) {
-    return _api.startRecording(viewId, saveDirectory);
+  Future<bool?> startRecording(int viewId, String saveDirectory) async {
+    final response = await _api.startRecording(
+      RecordMessage()
+        ..viewId = viewId
+        ..saveDirectory = saveDirectory,
+    );
+
+    return response.result;
   }
 
   @override
-  Future<bool> stopRecording(int viewId) {
-    return _api.stopRecording(viewId);
+  Future<bool?> stopRecording(int viewId) async {
+    final response = await _api.stopRecording(ViewMessage()..viewId = viewId);
+
+    return response.result;
   }
 }

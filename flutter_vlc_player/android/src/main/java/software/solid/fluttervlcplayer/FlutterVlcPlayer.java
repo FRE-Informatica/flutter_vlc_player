@@ -1,31 +1,35 @@
 package software.solid.fluttervlcplayer;
 
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.net.Uri;
-import android.util.Base64;
-import android.util.Log;
-import android.view.View;
-
-import androidx.annotation.Nullable;
-
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
 import org.videolan.libvlc.RendererDiscoverer;
 import org.videolan.libvlc.RendererItem;
+import org.videolan.libvlc.interfaces.IMedia;
+import org.videolan.libvlc.interfaces.IVLCVout;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.SurfaceTexture;
+import android.net.Uri;
+import android.util.Base64;
+import android.util.Log;
+import android.view.Surface;
+import android.view.SurfaceView;
+import android.view.View;
 
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.platform.PlatformView;
 import io.flutter.view.TextureRegistry;
 import software.solid.fluttervlcplayer.Enums.HwAcc;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 final class FlutterVlcPlayer implements PlatformView {
 
@@ -277,7 +281,7 @@ final class FlutterVlcPlayer implements PlatformView {
             Media media;
             if (isAssetUrl)
                 media = new Media(libVLC, context.getAssets().openFd(url));
-            else if (url.startsWith("content://"))
+            else if(url.startsWith("content://"))
                 media = new Media(libVLC, context.getContentResolver().openFileDescriptor(Uri.parse(url), "r").getFileDescriptor());
             else
                 media = new Media(libVLC, Uri.parse(url));
@@ -342,7 +346,7 @@ final class FlutterVlcPlayer implements PlatformView {
         return mediaPlayer.getRate();
     }
 
-    void seekTo(long location) {
+    void seekTo(int location) {
         if (mediaPlayer == null) return;
 
         mediaPlayer.setTime(location);
@@ -629,13 +633,10 @@ final class FlutterVlcPlayer implements PlatformView {
         mediaPlayer.play();
     }
 
-    @Nullable
     String getSnapshot() {
-        if (textureView == null) return null;
+        if (textureView == null) return "";
 
         Bitmap bitmap = textureView.getBitmap();
-        if (bitmap == null) return null;
-
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
         return Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP);

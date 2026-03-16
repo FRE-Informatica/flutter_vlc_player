@@ -591,16 +591,6 @@ class VlcPlayerWithControlsState extends State<VlcPlayerWithControls> {
 
   Future<void> _createCameraImage() async {
     final snapshot = await _controller.takeSnapshot();
-    if (snapshot == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Snapshot failed!')),
-        );
-      }
-
-      return;
-    }
-
     _overlayEntry?.remove();
     _overlayEntry = _createSnapshotThumbnail(snapshot);
 
